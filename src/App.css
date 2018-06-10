@@ -1,0 +1,14 @@
+:global(html),
+:global(body),
+:global(body > div),
+:global(.app),
+:global(.inner) {
+  height: 100%;
+  margin: 0;
+}
+
+.item {
+  /* color: red; */
+  /* height: 70px; */
+  border: 1px solid #ddd;
+}
