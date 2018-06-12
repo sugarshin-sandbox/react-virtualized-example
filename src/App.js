@@ -5,7 +5,7 @@ import isFibonacci from 'is-fibonacci';
 import List from './List'
 import s from './App.css';
 
-const createItem = n => ({
+const _createItem = n => ({
   name: `a-${n}-${Date.now()}`,
   descri: 'Lorem ipsum'.repeat(Math.floor(Math.random() * 100)),
   img: isFibonacci(n + 1)
@@ -15,38 +15,43 @@ const createItem = n => ({
 
 @hot(module)
 export default class App extends Component {
-  loadMoreRows = async () => await new Promise(r => {
-    console.log('loadMoreRows');
+  get _perPage() {
+    return 20;
+  }
+  get _totalCount() {
+    return 100;
+  }
+  loadMoreRows = async ({ startIndex, stopIndex }) => {
+    const newItems = await this.prefetchItems();
+    this.setState({ items: this.state.items.concat(newItems) })
+  }
+  prefetchItems = async () => await new Promise(resolve => {
     setTimeout(() => {
-      this.setState({
-        items: this.state.items.concat(
-          Array.from({ length: 20 }).map((_, i) => createItem(i))
-        ),
-      }, r)
+      const items = this.state.items.length >= this._totalCount
+        ? []
+        : Array.from({ length: this._perPage }).map((_, i) => _createItem(i));
+      resolve(items)
     }, 1000)
   })
   state = {
     // items: [],
-    items: Array.from({ length: 20 }).map((_, i) => createItem(i)),
+    items: Array.from({ length: this._perPage }).map((_, i) => _createItem(i)),
     cache: new CellMeasurerCache({
-      defaultHeight: 50,
-      minHeight: 50,
+      defaultHeight: 100,
+      minHeight: 30,
       fixedWidth: true,
     }),
-  }
-  componentDidMount() {
-    this._t = setTimeout(this.loadMoreRows, 2000);
-  }
-  componentWillUnmount() {
-    clearTimeout(this._t);
+    totalCount: this._totalCount,
   }
   render() {
-    const { items, cache } = this.state;
+    const { items, cache, totalCount } = this.state;
     return (
       <div className='app'>
         <List
           items={items}
           cellMeasurerCache={cache}
+          loadMoreRows={this.loadMoreRows}
+          totalCount={totalCount}
         />
       </div>
     )
